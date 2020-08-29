@@ -17,11 +17,13 @@ const doDeposit = async (req, res) => {
 
   if (account.length > 0) {
     try {
-      await Account.findByIdAndUpdate(account, {
-        $inc: { balance: depositValue },
-      });
+      const updatedAccount = await Account.findByIdAndUpdate(
+        account,
+        { $inc: { balance: depositValue } },
+        { new: true }
+      );
 
-      res.send('balance updatated!');
+      res.send('balance updatated. balance: ' + updatedAccount.balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
     }
