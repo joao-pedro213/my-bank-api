@@ -1,9 +1,8 @@
 import express from 'express';
+import { doDeposit } from '../controller/accountController.js';
 
 const accountRouter = express.Router();
 
-accountRouter.get('/', (_, res) => {
-  res.send('Route is working.');
-});
+accountRouter.put('/deposit', doDeposit);
 
 export { accountRouter };

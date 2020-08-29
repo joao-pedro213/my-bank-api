@@ -7,6 +7,7 @@ import { db } from './models/index.js';
     await db.mongoose.connect(db.url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      useFindAndModify: false,
     });
     console.log('Database connected.');
   } catch (err) {
@@ -17,6 +18,6 @@ import { db } from './models/index.js';
 const app = express();
 
 app.use(express.json());
-app.use('/accounts', accountRouter);
+app.use('/account', accountRouter);
 
 app.listen(process.env.PORT, () => console.log('API is running.'));
