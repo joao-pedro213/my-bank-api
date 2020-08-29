@@ -29,7 +29,7 @@ const doDeposit = async (req, res) => {
       res.status(500).send('Error on update balance: ' + err);
     }
   } else {
-    res.status(404).send('This account dont exists.');
+    res.status(404).send('Account not found.');
   }
 };
 
@@ -46,13 +46,11 @@ const doWithdraw = async (req, res) => {
     { _id: 1, balance: 1 }
   );
 
-  console.log(withDrawValue);
-
-  if (account[0].balance < withDrawValue) {
-    res.status(500).send('Insufficient balance.');
-  }
-
   if (account.length > 0) {
+    if (account[0].balance < withDrawValue) {
+      res.status(500).send('Insufficient balance.');
+    }
+
     try {
       const updatedAccount = await Account.findByIdAndUpdate(
         account[0]._id,
@@ -65,7 +63,7 @@ const doWithdraw = async (req, res) => {
       res.status(500).send('Error on update balance: ' + err);
     }
   } else {
-    res.status(404).send('This account dont exists.');
+    res.status(404).send('Account not found.');
   }
 };
 
