@@ -9,6 +9,7 @@ import {
   doBalanceAvgFromAgency,
   clientsWithLowerBalance,
   clientsWithHigherBalance,
+  createPrivateClientsList,
 } from '../controller/accountController.js';
 
 const accountRouter = express.Router();
@@ -22,5 +23,6 @@ accountRouter.put('/transfer', doTransfer);
 accountRouter.get('/balanceAvg', doBalanceAvgFromAgency);
 accountRouter.get('/clientsWithLowerBalance', clientsWithLowerBalance);
 accountRouter.get('/clientsWithHigherBalance', clientsWithHigherBalance);
+accountRouter.get('/privateClients', createPrivateClientsList);
 
 export { accountRouter };

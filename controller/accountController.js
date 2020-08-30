@@ -230,6 +230,34 @@ const clientsWithHigherBalance = async (req, res) => {
   }
 };
 
+const createPrivateClientsList = async (_, res) => {
+  let privateList = [];
+  try {
+    const allAccounts = await Account.find();
+    const agencies = await Account.distinct('agencia');
+
+    agencies.forEach((agency) => {
+      let agencyClients = [];
+      agencyClients = allAccounts
+        .filter((client) => client.agencia === agency)
+        .sort((a, b) => b.balance - a.balance);
+      privateList.push(agencyClients[0]);
+      return;
+    });
+    privateList = privateList.map((client) => {
+      return {
+        agencia: 99,
+        conta: client.conta,
+        name: client.name,
+        balance: client.balance,
+      };
+    });
+    res.send(privateList);
+  } catch (err) {
+    res.status(500).send('Error on listing private clients: ' + err);
+  }
+};
+
 const validateAccountExistence = async (agency, accountNumber) => {
   // prettier-ignore
   const account = await Account.find({ agencia: agency, conta: accountNumber,});
@@ -250,4 +278,5 @@ export {
   doBalanceAvgFromAgency,
   clientsWithLowerBalance,
   clientsWithHigherBalance,
+  createPrivateClientsList,
 };
