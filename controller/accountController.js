@@ -30,7 +30,7 @@ const doDeposit = async (req, res) => {
 const doWithdraw = async (req, res) => {
   const agency = req.body.agency;
   const accountNumber = req.body.accountNumber;
-  const withDrawValue = req.body.value + WITHDRAW_FEE;
+  const withDrawValue = Math.abs(req.body.value + WITHDRAW_FEE);
 
   const account = await validateAccountExistence(agency, accountNumber);
 
@@ -47,7 +47,7 @@ const doWithdraw = async (req, res) => {
         { new: true }
       );
 
-      res.send('balance updated. balance: ' + updatedAccount[0].balance);
+      res.send('balance updated. balance: ' + updatedAccount.balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
     }
@@ -115,7 +115,7 @@ const deleteExistingAccount = async (req, res) => {
 };
 
 const doTransfer = async (req, res) => {
-  let transferValue = req.body.transferValue;
+  let transferValue = Math.abs(req.body.transferValue);
   const originAccountAgency = req.body.originAccountAgency;
   const originalAccountNumber = req.body.originAccountNumber;
   const destinationAccountAgency = req.body.destinationAccountAgency;
