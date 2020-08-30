@@ -7,7 +7,7 @@ const TRANSFER_FEE = 8;
 const doDeposit = async (req, res) => {
   const agency = req.body.agency;
   const accountNumber = req.body.accountNumber;
-  const depositValue = req.body.value;
+  const depositValue = Math.abs(req.body.value);
 
   const account = await validateAccountExistence(agency, accountNumber);
 
@@ -18,7 +18,7 @@ const doDeposit = async (req, res) => {
         { $inc: { balance: depositValue } },
         { new: true }
       );
-      res.send('balance updated. balance: ' + updatedAccount[0].balance);
+      res.send('balance updated. balance: ' + updatedAccount.balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
     }
