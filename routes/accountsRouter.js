@@ -8,6 +8,7 @@ import {
   doTransfer,
   doBalanceAvgFromAgency,
   clientsWithLowerBalance,
+  clientsWithHigherBalance,
 } from '../controller/accountController.js';
 
 const accountRouter = express.Router();
@@ -20,5 +21,6 @@ accountRouter.delete('/deleteAccount', deleteExistingAccount);
 accountRouter.put('/transfer', doTransfer);
 accountRouter.get('/balanceAvg', doBalanceAvgFromAgency);
 accountRouter.get('/clientsWithLowerBalance', clientsWithLowerBalance);
+accountRouter.get('/clientsWithHigherBalance', clientsWithHigherBalance);
 
 export { accountRouter };

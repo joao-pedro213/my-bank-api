@@ -214,6 +214,22 @@ const clientsWithLowerBalance = async (req, res) => {
   }
 };
 
+const clientsWithHigherBalance = async (req, res) => {
+  const limit = req.body.limit;
+  try {
+    const clientsList = await Account.find(
+      {},
+      { _id: 0, agencia: 1, conta: 1, balance: 1 }
+    )
+      .sort({ balance: -1 })
+      .limit(limit);
+    clientsList.sort((a, b) => a.balance - b.balance);
+    res.send(clientsList);
+  } catch (err) {
+    res.status(500).send('Error on listing clients: ' + err);
+  }
+};
+
 const validateAccountExistence = async (agency, accountNumber) => {
   // prettier-ignore
   const account = await Account.find({ agencia: agency, conta: accountNumber,});
@@ -233,4 +249,5 @@ export {
   doTransfer,
   doBalanceAvgFromAgency,
   clientsWithLowerBalance,
+  clientsWithHigherBalance,
 };
