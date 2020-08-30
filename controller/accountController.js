@@ -8,22 +8,15 @@ const doDeposit = async (req, res) => {
   const accountNumber = req.body.accountNumber;
   const depositValue = req.body.value;
 
-  const account = await Account.find(
-    {
-      agencia: agency,
-      conta: accountNumber,
-    },
-    { _id: 1 }
-  );
+  const account = await validateAccountExistence(agency, accountNumber);
 
-  if (account.length > 0) {
+  if (account) {
     try {
       const updatedAccount = await Account.findByIdAndUpdate(
-        account,
+        account[0]._id,
         { $inc: { balance: depositValue } },
         { new: true }
       );
-
       res.send('balance updated. balance: ' + updatedAccount.balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
@@ -38,17 +31,12 @@ const doWithdraw = async (req, res) => {
   const accountNumber = req.body.accountNumber;
   const withDrawValue = req.body.value + WITHDRAW_FEE;
 
-  const account = await Account.find(
-    {
-      agencia: agency,
-      conta: accountNumber,
-    },
-    { _id: 1, balance: 1 }
-  );
+  const account = await validateAccountExistence(agency, accountNumber);
 
-  if (account.length > 0) {
+  if (account) {
     if (account[0].balance < withDrawValue) {
       res.status(500).send('Insufficient balance.');
+      return;
     }
 
     try {
@@ -67,4 +55,31 @@ const doWithdraw = async (req, res) => {
   }
 };
 
-export { doDeposit, doWithdraw };
+const checkBalanceFrom = async (req, res) => {
+  const agency = req.body.agency;
+  const accountNumber = req.body.accountNumber;
+
+  try {
+    const account = await validateAccountExistence(agency, accountNumber);
+
+    if (account) {
+      res.send('Current balance: ' + account[0].balance);
+    } else {
+      res.status(404).send('Account not found.');
+    }
+  } catch (err) {
+    res.status(500).send('Error on checking the balance.');
+  }
+};
+
+const validateAccountExistence = async (agency, accountNumber) => {
+  // prettier-ignore
+  const account = await Account.find({ agencia: agency, conta: accountNumber,});
+
+  if (account.length === 0) {
+    return false;
+  }
+  return account;
+};
+
+export { doDeposit, doWithdraw, checkBalanceFrom };
