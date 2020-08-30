@@ -180,6 +180,40 @@ const doTransfer = async (req, res) => {
   }
 };
 
+const doBalanceAvgFromAgency = async (req, res) => {
+  const agency = req.body.agency;
+  try {
+    const isAgency = await Account.find({ agencia: agency });
+    if (isAgency.length === 0) {
+      res.status(404).send('Agency not found.');
+      return;
+    }
+    let balanceAvg = await Account.aggregate([
+      { $match: { agencia: agency } },
+      { $group: { _id: '$agencia', average: { $avg: '$balance' } } },
+    ]);
+    balanceAvg = balanceAvg[0].average.toFixed(2);
+    res.send(`The balance average at agency ${agency} is: ${balanceAvg}`);
+  } catch (err) {
+    res.status(500).send('Error on calculating balance average: ' + err);
+  }
+};
+
+const clientsWithLowerBalance = async (req, res) => {
+  const limit = req.body.limit;
+  try {
+    const clientsList = await Account.find(
+      { balance: { $gt: 0 } },
+      { _id: 0, agencia: 1, conta: 1, balance: 1 }
+    )
+      .sort({ balance: 1 })
+      .limit(limit);
+    res.send(clientsList);
+  } catch (err) {
+    res.status(500).send('Error on listing clients: ' + err);
+  }
+};
+
 const validateAccountExistence = async (agency, accountNumber) => {
   // prettier-ignore
   const account = await Account.find({ agencia: agency, conta: accountNumber,});
@@ -197,4 +231,6 @@ export {
   createNewAccount,
   deleteExistingAccount,
   doTransfer,
+  doBalanceAvgFromAgency,
+  clientsWithLowerBalance,
 };
