@@ -72,6 +72,47 @@ const checkBalanceFrom = async (req, res) => {
   }
 };
 
+const createNewAccount = async (req, res) => {
+  const agency = req.body.agency;
+  const accountNumber = req.body.accountNumber;
+  const accountOwner = req.body.accountOwner;
+  const initialBalance = 0;
+  try {
+    const account = await new Account({
+      agencia: agency,
+      conta: accountNumber,
+      name: accountOwner,
+      balance: initialBalance,
+    }).save();
+    res.send('Account inserida com sucesso. \n' + account);
+  } catch (err) {
+    res.status(500).send('Error on creating new account: ' + err);
+  }
+};
+
+const deleteExistingAccount = async (req, res) => {
+  const agency = req.body.agency;
+  const accountNumber = req.body.accountNumber;
+
+  const account = await validateAccountExistence(agency, accountNumber);
+
+  if (account) {
+    try {
+      await Account.findByIdAndDelete(account[0]._id);
+      //prettier-ignore
+      const numberOfAccountsByAgency = await Account.countDocuments({agencia: agency,});
+      console.log(numberOfAccountsByAgency);
+      res.send(
+        `Account deleted. \n Currently exists ${numberOfAccountsByAgency} accounts for the agency ${agency}.`
+      );
+    } catch (err) {
+      res.status(500).send('Error on deleting account: ' + err);
+    }
+  } else {
+    res.status(404).send('Account not found.');
+  }
+};
+
 const validateAccountExistence = async (agency, accountNumber) => {
   // prettier-ignore
   const account = await Account.find({ agencia: agency, conta: accountNumber,});
@@ -82,4 +123,10 @@ const validateAccountExistence = async (agency, accountNumber) => {
   return account;
 };
 
-export { doDeposit, doWithdraw, checkBalanceFrom };
+export {
+  doDeposit,
+  doWithdraw,
+  checkBalanceFrom,
+  createNewAccount,
+  deleteExistingAccount,
+};
