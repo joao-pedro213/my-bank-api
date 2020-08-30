@@ -246,11 +246,17 @@ const createPrivateClientsList = async (_, res) => {
     });
     privateList = privateList.map((client) => {
       return {
+        id: client._id,
         agencia: 99,
         conta: client.conta,
         name: client.name,
         balance: client.balance,
       };
+    });
+    privateList.forEach(async (client) => {
+      await Account.findByIdAndUpdate(client.id, {
+        $set: { agencia: client.agencia },
+      });
     });
     res.send(privateList);
   } catch (err) {
