@@ -2,6 +2,7 @@ import { db } from '../models/index.js';
 
 const Account = db.account;
 const WITHDRAW_FEE = 1;
+const TRANSFER_FEE = 8;
 
 const doDeposit = async (req, res) => {
   const agency = req.body.agency;
@@ -17,7 +18,7 @@ const doDeposit = async (req, res) => {
         { $inc: { balance: depositValue } },
         { new: true }
       );
-      res.send('balance updated. balance: ' + updatedAccount.balance);
+      res.send('balance updated. balance: ' + updatedAccount[0].balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
     }
@@ -46,7 +47,7 @@ const doWithdraw = async (req, res) => {
         { new: true }
       );
 
-      res.send('balance updated. balance: ' + updatedAccount.balance);
+      res.send('balance updated. balance: ' + updatedAccount[0].balance);
     } catch (err) {
       res.status(500).send('Error on update balance: ' + err);
     }
@@ -113,6 +114,72 @@ const deleteExistingAccount = async (req, res) => {
   }
 };
 
+const doTransfer = async (req, res) => {
+  let transferValue = req.body.transferValue;
+  const originAccountAgency = req.body.originAccountAgency;
+  const originalAccountNumber = req.body.originAccountNumber;
+  const destinationAccountAgency = req.body.destinationAccountAgency;
+  const destinationAccountNumber = req.body.destinationAccountNumber;
+
+  try {
+    //prettier-ignore
+    const originAccount = await validateAccountExistence(originAccountAgency, originalAccountNumber)
+    //prettier-ignore
+    const destinationAccount = await validateAccountExistence(destinationAccountAgency, destinationAccountNumber);
+
+    if (!originAccount || !destinationAccount) {
+      res
+        .status(404)
+        .send('The origin account or the destination does not exists.');
+      return;
+    }
+
+    if (originAccountAgency === destinationAccountAgency) {
+      if (originAccount[0].balance < transferValue) {
+        res.status(500).send('Insufficient balance.');
+        return;
+      }
+      const updatedOriginAccount = await Account.findByIdAndUpdate(
+        originAccount[0]._id,
+        { $inc: { balance: transferValue * -1 } },
+        { new: true }
+      );
+      await Account.findByIdAndUpdate(
+        destinationAccount[0]._id,
+        { $inc: { balance: transferValue } },
+        { new: true }
+      );
+
+      res.send(
+        'Transfer done with success. Current balance: ' +
+          updatedOriginAccount.balance
+      );
+    } else {
+      transferValue = transferValue + TRANSFER_FEE;
+      if (originAccount[0].balance < transferValue) {
+        res.status(500).send('Insufficient balance.');
+        return;
+      }
+      const updatedOriginAccount = await Account.findByIdAndUpdate(
+        originAccount[0]._id,
+        { $inc: { balance: transferValue * -1 } },
+        { new: true }
+      );
+      await Account.findByIdAndUpdate(
+        destinationAccount[0]._id,
+        { $inc: { balance: transferValue - TRANSFER_FEE } },
+        { new: true }
+      );
+      res.send(
+        'Transfer done with success. Current balance: ' +
+          updatedOriginAccount.balance
+      );
+    }
+  } catch (err) {
+    res.status(500).send('Error on doing transference: ' + err);
+  }
+};
+
 const validateAccountExistence = async (agency, accountNumber) => {
   // prettier-ignore
   const account = await Account.find({ agencia: agency, conta: accountNumber,});
@@ -129,4 +196,5 @@ export {
   checkBalanceFrom,
   createNewAccount,
   deleteExistingAccount,
+  doTransfer,
 };
