@@ -30,12 +30,12 @@ const doDeposit = async (req, res) => {
 const doWithdraw = async (req, res) => {
   const agency = req.body.agency;
   const accountNumber = req.body.accountNumber;
-  const withDrawValue = Math.abs(req.body.value + WITHDRAW_FEE);
+  const withdrawValue = Math.abs(req.body.value + WITHDRAW_FEE);
 
   const account = await validateAccountExistence(agency, accountNumber);
 
   if (account) {
-    if (account[0].balance < withDrawValue) {
+    if (account[0].balance < withdrawValue) {
       res.status(500).send('Insufficient balance.');
       return;
     }
@@ -43,7 +43,7 @@ const doWithdraw = async (req, res) => {
     try {
       const updatedAccount = await Account.findByIdAndUpdate(
         account[0]._id,
-        { $inc: { balance: withDrawValue * -1 } },
+        { $inc: { balance: withdrawValue * -1 } },
         { new: true }
       );
 
